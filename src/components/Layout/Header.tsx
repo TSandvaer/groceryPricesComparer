@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingCart, LogOut, BarChart3, Plus, Edit2, Languages, Globe, ChevronDown } from 'lucide-react';
+import { ShoppingCart, LogOut, BarChart3, Plus, Edit2, Languages, Globe, ChevronDown, Menu, X } from 'lucide-react';
 import { signOut } from '../../firebase/auth';
 import { isAdmin } from '../../utils/adminUtils';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -49,10 +49,11 @@ const FlagSVG: React.FC<{ country: 'en' | 'da' | 'sv' }> = ({ country }) => {
 };
 
 const Header: React.FC<HeaderProps> = ({ user, currentView, setCurrentView }) => {
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const languageMenuRef = useRef<HTMLDivElement>(null);
-  const { t } = useLanguage();
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   const handleSignOut = async () => {
     try {
@@ -70,11 +71,14 @@ const Header: React.FC<HeaderProps> = ({ user, currentView, setCurrentView }) =>
 
   const currentLanguage = languageOptions.find(opt => opt.code === language);
 
-  // Close dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (languageMenuRef.current && !languageMenuRef.current.contains(event.target as Node)) {
         setShowLanguageMenu(false);
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+        setShowMobileMenu(false);
       }
     };
 
@@ -101,8 +105,8 @@ const Header: React.FC<HeaderProps> = ({ user, currentView, setCurrentView }) =>
             </div>
           </div>
 
-          {/* Navigation */}
-          <div className="flex items-center gap-4">
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center gap-4">
             <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
               <button
                 onClick={() => setCurrentView('compare')}
@@ -209,7 +213,127 @@ const Header: React.FC<HeaderProps> = ({ user, currentView, setCurrentView }) =>
               </button>
             </div>
           </div>
+
+          {/* Mobile Menu Button */}
+          <div className="lg:hidden">
+            <button
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              aria-label="Toggle menu"
+            >
+              {showMobileMenu ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Menu */}
+        {showMobileMenu && (
+          <div ref={mobileMenuRef} className="lg:hidden border-t border-gray-200 dark:border-gray-700 py-4">
+            {/* Navigation Links */}
+            <div className="space-y-2">
+              <button
+                onClick={() => {
+                  setCurrentView('compare');
+                  setShowMobileMenu(false);
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                  currentView === 'compare'
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                <BarChart3 size={18} />
+                Compare
+              </button>
+              <button
+                onClick={() => {
+                  setCurrentView('submit');
+                  setShowMobileMenu(false);
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                  currentView === 'submit'
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                <Plus size={18} />
+                Submit
+              </button>
+              {isAdmin(user) && (
+                <>
+                  <button
+                    onClick={() => {
+                      setCurrentView('edit');
+                      setShowMobileMenu(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                      currentView === 'edit'
+                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <Edit2 size={18} />
+                    Edit Entries
+                  </button>
+                  <button
+                    onClick={() => {
+                      setCurrentView('translations');
+                      setShowMobileMenu(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                      currentView === 'translations'
+                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <Languages size={18} />
+                    Translations
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Language Selector Mobile */}
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 px-4 mb-2">Language</p>
+              <div className="space-y-1">
+                {languageOptions.map(option => (
+                  <button
+                    key={option.code}
+                    onClick={() => {
+                      setLanguage(option.code);
+                    }}
+                    className={`w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors ${
+                      language === option.code
+                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <FlagSVG country={option.code} />
+                    <span>{option.label}</span>
+                    {language === option.code && (
+                      <span className="ml-auto text-blue-600 dark:text-blue-400">✓</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* User Info & Sign Out Mobile */}
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400">
+                {user.email}
+              </div>
+              <button
+                onClick={handleSignOut}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+              >
+                <LogOut size={18} />
+                Sign Out
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );
