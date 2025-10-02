@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingCart, LogOut, BarChart3, Plus, Edit2, Languages, Globe, ChevronDown, Menu, X, UserCheck } from 'lucide-react';
+import { LogOut, BarChart3, Plus, Edit2, Languages, ChevronDown, Menu, X, UserCheck } from 'lucide-react';
 import { signOut } from '../../firebase/auth';
 import { isAdmin } from '../../utils/adminUtils';
 import { useLanguage } from '../../contexts/LanguageContext';
 import type { User } from 'firebase/auth';
+import PSLogo from '../../../images/PSLogo.png';
 
 interface HeaderProps {
   user: User;
@@ -89,20 +90,14 @@ const Header: React.FC<HeaderProps> = ({ user, currentView, setCurrentView }) =>
   return (
     <header className="bg-white dark:bg-gray-800 shadow-md border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo/Title */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
-              <ShoppingCart className="text-white" size={24} />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                {t('Price Comparer')}
-              </h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Sweden vs Denmark
-              </p>
-            </div>
+        <div className="flex items-center justify-between h-20 sm:h-24 md:h-28 lg:h-32">
+          {/* Logo */}
+          <div className="flex items-center">
+            <img
+              src={PSLogo}
+              alt="Price Comparer Logo"
+              className="h-16 sm:h-20 md:h-24 lg:h-[120px] w-auto object-contain"
+            />
           </div>
 
           {/* Desktop Navigation */}
@@ -173,16 +168,15 @@ const Header: React.FC<HeaderProps> = ({ user, currentView, setCurrentView }) =>
             <div className="relative" ref={languageMenuRef}>
               <button
                 onClick={() => setShowLanguageMenu(!showLanguageMenu)}
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                className="flex items-center gap-1 px-2 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
                 title="Select Language"
               >
                 <FlagSVG country={language} />
-                <span className="hidden sm:inline">{currentLanguage?.label}</span>
                 <ChevronDown size={16} />
               </button>
 
               {showLanguageMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                <div className="absolute right-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
                   {languageOptions.map(option => (
                     <button
                       key={option.code}
@@ -190,17 +184,14 @@ const Header: React.FC<HeaderProps> = ({ user, currentView, setCurrentView }) =>
                         setLanguage(option.code);
                         setShowLanguageMenu(false);
                       }}
-                      className={`w-full flex items-center gap-3 px-4 py-2 text-sm text-left transition-colors ${
+                      className={`w-full flex items-center justify-center px-3 py-2 text-sm transition-colors ${
                         language === option.code
-                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                          ? 'bg-blue-50 dark:bg-blue-900/20'
+                          : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                       }`}
+                      title={option.label}
                     >
                       <FlagSVG country={option.code} />
-                      <span>{option.label}</span>
-                      {language === option.code && (
-                        <span className="ml-auto text-blue-600 dark:text-blue-400">✓</span>
-                      )}
                     </button>
                   ))}
                 </div>
@@ -321,24 +312,21 @@ const Header: React.FC<HeaderProps> = ({ user, currentView, setCurrentView }) =>
             {/* Language Selector Mobile */}
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 px-4 mb-2">Language</p>
-              <div className="space-y-1">
+              <div className="flex gap-2 px-4">
                 {languageOptions.map(option => (
                   <button
                     key={option.code}
                     onClick={() => {
                       setLanguage(option.code);
                     }}
-                    className={`w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors ${
+                    className={`flex items-center justify-center px-3 py-2 rounded-lg transition-colors ${
                       language === option.code
-                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        ? 'bg-blue-50 dark:bg-blue-900/20'
+                        : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
                     }`}
+                    title={option.label}
                   >
                     <FlagSVG country={option.code} />
-                    <span>{option.label}</span>
-                    {language === option.code && (
-                      <span className="ml-auto text-blue-600 dark:text-blue-400">✓</span>
-                    )}
                   </button>
                 ))}
               </div>

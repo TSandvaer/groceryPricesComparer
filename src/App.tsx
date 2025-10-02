@@ -8,6 +8,7 @@ import AdminEditView from './components/Admin/AdminEditView';
 import TranslationsView from './components/Admin/TranslationsView';
 import UserRequestsView from './components/Admin/UserRequestsView';
 import { useLanguage } from './contexts/LanguageContext';
+import PSLogo from '../images/PSLogo.png';
 
 function App() {
   const { user, loading } = useAuth();
@@ -18,10 +19,12 @@ function App() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
         <div className="text-center">
+          <img
+            src={PSLogo}
+            alt="Price Comparer Logo"
+            className="h-20 w-auto object-contain mx-auto mb-4"
+          />
           <div className="rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mx-auto mb-4 animate-spin"></div>
-          <h2 className="text-xl font-medium text-gray-900 dark:text-white">
-            {t('Price Comparer')}
-          </h2>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Loading...</p>
         </div>
       </div>

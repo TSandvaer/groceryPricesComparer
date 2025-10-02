@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { signIn, signUp } from '../../firebase/auth';
-import { Eye, EyeOff, Mail, Lock, ShoppingCart } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import PSLogo from '../../../images/PSLogo.png';
 
 const AuthComponent: React.FC = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -48,15 +49,13 @@ const AuthComponent: React.FC = () => {
       <div className="w-full max-w-md">
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">
-            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mb-4 shadow-lg">
-              <ShoppingCart className="text-white" size={32} />
+            <div className="mx-auto mb-4 flex items-center justify-center">
+              <img
+                src={PSLogo}
+                alt="Price Comparer Logo"
+                className="h-20 w-auto object-contain"
+              />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Grocery Price Comparer
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Compare prices between Sweden and Denmark
-            </p>
           </div>
 
           {error && (

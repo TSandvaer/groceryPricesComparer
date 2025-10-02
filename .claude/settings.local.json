@@ -5,7 +5,8 @@
       "Bash(npx vite:*)",
       "Bash(npm run dev:*)",
       "Bash(npm install:*)",
-      "WebSearch"
+      "WebSearch",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []
