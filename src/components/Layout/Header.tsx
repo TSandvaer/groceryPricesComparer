@@ -1,12 +1,13 @@
 import React from 'react';
-import { ShoppingCart, LogOut, BarChart3, Plus } from 'lucide-react';
+import { ShoppingCart, LogOut, BarChart3, Plus, Edit2 } from 'lucide-react';
 import { signOut } from '../../firebase/auth';
+import { isAdmin } from '../../utils/adminUtils';
 import type { User } from 'firebase/auth';
 
 interface HeaderProps {
   user: User;
-  currentView: 'compare' | 'submit';
-  setCurrentView: (view: 'compare' | 'submit') => void;
+  currentView: 'compare' | 'submit' | 'edit';
+  setCurrentView: (view: 'compare' | 'submit' | 'edit') => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ user, currentView, setCurrentView }) => {
@@ -62,6 +63,19 @@ const Header: React.FC<HeaderProps> = ({ user, currentView, setCurrentView }) =>
                 <Plus size={18} />
                 Submit
               </button>
+              {isAdmin(user) && (
+                <button
+                  onClick={() => setCurrentView('edit')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    currentView === 'edit'
+                      ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                      : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Edit2 size={18} />
+                  Edit Entries
+                </button>
+              )}
             </div>
 
             {/* User Info & Sign Out */}

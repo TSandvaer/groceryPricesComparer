@@ -5,7 +5,10 @@ import {
   query,
   where,
   Timestamp,
-  QueryConstraint
+  QueryConstraint,
+  doc,
+  updateDoc,
+  deleteDoc
 } from 'firebase/firestore';
 import { db } from './config';
 import type { PriceEntry } from '../types';
@@ -68,6 +71,24 @@ export const getPriceEntries = async (filters?: {
     }
 
     return entries;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updatePriceEntry = async (entryId: string, updates: Partial<Omit<PriceEntry, 'id' | 'createdAt'>>) => {
+  try {
+    const entryRef = doc(db, PRICE_ENTRIES_COLLECTION, entryId);
+    await updateDoc(entryRef, updates);
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deletePriceEntry = async (entryId: string) => {
+  try {
+    const entryRef = doc(db, PRICE_ENTRIES_COLLECTION, entryId);
+    await deleteDoc(entryRef);
   } catch (error) {
     throw error;
   }

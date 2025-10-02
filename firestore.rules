@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'dev@sandvaer.dk';
+    }
+
+    match /priceEntries/{entry} {
+      // Anyone authenticated can read
+      allow read: if request.auth != null;
+
+      // Only authenticated users can create entries with their own userId
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid;
+
+      // Users can update/delete their own entries OR admin can update/delete any entry
+      allow update, delete: if request.auth != null
+        && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+  }
+}

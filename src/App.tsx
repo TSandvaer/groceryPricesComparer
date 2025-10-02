@@ -4,10 +4,11 @@ import AuthComponent from './components/Auth/AuthComponent';
 import Header from './components/Layout/Header';
 import PriceSubmitForm from './components/PriceSubmit/PriceSubmitForm';
 import PriceComparisonView from './components/PriceComparison/PriceComparisonView';
+import AdminEditView from './components/Admin/AdminEditView';
 
 function App() {
   const { user, loading } = useAuth();
-  const [currentView, setCurrentView] = useState<'compare' | 'submit'>('compare');
+  const [currentView, setCurrentView] = useState<'compare' | 'submit' | 'edit'>('compare');
 
   if (loading) {
     return (
@@ -33,8 +34,10 @@ function App() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {currentView === 'compare' ? (
           <PriceComparisonView />
-        ) : (
+        ) : currentView === 'submit' ? (
           <PriceSubmitForm user={user} onSuccess={() => setCurrentView('compare')} />
+        ) : (
+          <AdminEditView />
         )}
       </main>
     </div>
