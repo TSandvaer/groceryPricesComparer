@@ -6,17 +6,44 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.email == 'dev@sandvaer.dk';
     }
 
+    // Helper function to check if user is data contributor
+    function isDataContributor() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isDataContributor == true;
+    }
+
     match /priceEntries/{entry} {
       // Anyone authenticated can read
       allow read: if request.auth != null;
 
-      // Only authenticated users can create entries with their own userId
+      // Only data contributors or admin can create entries with their own userId
       allow create: if request.auth != null
-        && request.resource.data.userId == request.auth.uid;
+        && request.resource.data.userId == request.auth.uid
+        && (isDataContributor() || isAdmin());
 
       // Users can update/delete their own entries OR admin can update/delete any entry
       allow update, delete: if request.auth != null
         && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    match /users/{userId} {
+      // Users can read their own document, admin can read all
+      allow read: if request.auth != null &&
+        (request.auth.uid == userId || isAdmin());
+
+      // Users can create their own document (on first login), admin can create any
+      allow create: if request.auth != null &&
+        (request.auth.uid == userId || isAdmin());
+
+      // Users can update lastLogin and isPending on their own document, admin can update any field
+      allow update: if request.auth != null &&
+        ((request.auth.uid == userId &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastLogin', 'isPending'])) ||
+        isAdmin());
+
+      // Only admin can delete user documents
+      allow delete: if isAdmin();
     }
 
     match /translations/{translation} {

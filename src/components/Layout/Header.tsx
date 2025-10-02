@@ -10,6 +10,7 @@ interface HeaderProps {
   user: User;
   currentView: 'compare' | 'submit' | 'edit' | 'translations' | 'userRequests';
   setCurrentView: (view: 'compare' | 'submit' | 'edit' | 'translations' | 'userRequests') => void;
+  isDataContributor: boolean;
 }
 
 const FlagSVG: React.FC<{ country: 'en' | 'da' | 'sv' }> = ({ country }) => {
@@ -49,12 +50,13 @@ const FlagSVG: React.FC<{ country: 'en' | 'da' | 'sv' }> = ({ country }) => {
   }
 };
 
-const Header: React.FC<HeaderProps> = ({ user, currentView, setCurrentView }) => {
+const Header: React.FC<HeaderProps> = ({ user, currentView, setCurrentView, isDataContributor }) => {
   const { language, setLanguage, t } = useLanguage();
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const languageMenuRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const admin = isAdmin(user);
 
   const handleSignOut = async () => {
     try {
@@ -114,18 +116,20 @@ const Header: React.FC<HeaderProps> = ({ user, currentView, setCurrentView }) =>
                 <BarChart3 size={18} />
                 Compare
               </button>
-              <button
-                onClick={() => setCurrentView('submit')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  currentView === 'submit'
-                    ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
-                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
-                }`}
-              >
-                <Plus size={18} />
-                Submit
-              </button>
-              {isAdmin(user) && (
+              {(isDataContributor || admin) && (
+                <button
+                  onClick={() => setCurrentView('submit')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    currentView === 'submit'
+                      ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                      : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Plus size={18} />
+                  Submit
+                </button>
+              )}
+              {admin && (
                 <>
                   <button
                     onClick={() => setCurrentView('edit')}
@@ -247,21 +251,23 @@ const Header: React.FC<HeaderProps> = ({ user, currentView, setCurrentView }) =>
                 <BarChart3 size={18} />
                 Compare
               </button>
-              <button
-                onClick={() => {
-                  setCurrentView('submit');
-                  setShowMobileMenu(false);
-                }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                  currentView === 'submit'
-                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                }`}
-              >
-                <Plus size={18} />
-                Submit
-              </button>
-              {isAdmin(user) && (
+              {(isDataContributor || admin) && (
+                <button
+                  onClick={() => {
+                    setCurrentView('submit');
+                    setShowMobileMenu(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                    currentView === 'submit'
+                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <Plus size={18} />
+                  Submit
+                </button>
+              )}
+              {admin && (
                 <>
                   <button
                     onClick={() => {

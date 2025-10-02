@@ -6,7 +6,7 @@ import {
   type User
 } from 'firebase/auth';
 import { auth } from './config';
-import { createUserRequest, checkUserRequestStatus } from './userManagement';
+import { createUserRequest, checkUserRequestStatus, createOrUpdateUser } from './userManagement';
 
 export const signUp = async (email: string, password: string) => {
   try {
@@ -21,6 +21,8 @@ export const signUp = async (email: string, password: string) => {
 export const signIn = async (email: string, password: string) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    // Create or update user document in Firestore (will migrate temp user if exists)
+    await createOrUpdateUser(userCredential.user.uid, email);
     return userCredential.user;
   } catch (error: any) {
     // Check if user has a pending or rejected request
@@ -35,6 +37,8 @@ export const signIn = async (email: string, password: string) => {
           // Request approved! Create the user account with their original password
           try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            // Create user document in Firestore (will migrate temp user if exists)
+            await createOrUpdateUser(userCredential.user.uid, email);
             return userCredential.user;
           } catch (createError: any) {
             if (createError.code === 'auth/weak-password') {

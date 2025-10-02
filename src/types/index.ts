@@ -54,3 +54,12 @@ export interface UserRequest {
   reviewedAt?: Date;
   reviewedBy?: string;  // Admin email who reviewed
 }
+
+export interface User {
+  id: string;  // Firebase Auth UID (or temp ID for pending users)
+  email: string;
+  isDataContributor: boolean;
+  isPending?: boolean;  // True for users created before first login
+  createdAt: Date;
+  lastLogin: Date;
+}

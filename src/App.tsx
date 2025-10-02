@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from './hooks/useAuth';
 import AuthComponent from './components/Auth/AuthComponent';
 import Header from './components/Layout/Header';
@@ -8,12 +8,24 @@ import AdminEditView from './components/Admin/AdminEditView';
 import TranslationsView from './components/Admin/TranslationsView';
 import UserRequestsView from './components/Admin/UserRequestsView';
 import { useLanguage } from './contexts/LanguageContext';
+import { getUserContributorStatus } from './firebase/userManagement';
 import PSLogo from '../images/PSLogo.png';
 
 function App() {
   const { user, loading } = useAuth();
   const [currentView, setCurrentView] = useState<'compare' | 'submit' | 'edit' | 'translations' | 'userRequests'>('compare');
+  const [isDataContributor, setIsDataContributor] = useState(false);
   const { t } = useLanguage();
+
+  useEffect(() => {
+    if (user) {
+      getUserContributorStatus(user.uid).then(status => {
+        setIsDataContributor(status);
+      }).catch(err => {
+        console.error('Failed to load contributor status:', err);
+      });
+    }
+  }, [user]);
 
   if (loading) {
     return (
@@ -37,7 +49,12 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header user={user} currentView={currentView} setCurrentView={setCurrentView} />
+      <Header
+        user={user}
+        currentView={currentView}
+        setCurrentView={setCurrentView}
+        isDataContributor={isDataContributor}
+      />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {currentView === 'compare' ? (
           <PriceComparisonView />
