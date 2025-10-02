@@ -75,8 +75,10 @@ const AdminEditView: React.FC = () => {
 
   const filteredEntries = entries.filter(entry =>
     entry.groceryType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    entry.groceryBrandName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    entry.store.toLowerCase().includes(searchTerm.toLowerCase())
+    entry.groceryBrandName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    entry.store?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    entry.userEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    entry.userId.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -109,7 +111,7 @@ const AdminEditView: React.FC = () => {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by type, brand, or store..."
+              placeholder="Search by type, brand, store, or user..."
               className="block w-full pl-10 pr-3 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 placeholder-gray-400"
             />
           </div>
@@ -133,6 +135,7 @@ const AdminEditView: React.FC = () => {
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Store</th>
                 <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Country</th>
                 <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Date</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Submitted By</th>
                 <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Actions</th>
               </tr>
             </thead>
@@ -223,6 +226,9 @@ const AdminEditView: React.FC = () => {
                           className="px-2 py-1 border rounded text-sm dark:bg-gray-700 dark:border-gray-600"
                         />
                       </td>
+                      <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
+                        {entry.userEmail || entry.userId}
+                      </td>
                       <td className="py-3 px-4">
                         <div className="flex justify-center gap-2">
                           <button
@@ -266,6 +272,9 @@ const AdminEditView: React.FC = () => {
                       </td>
                       <td className="py-3 px-4 text-center text-sm text-gray-600 dark:text-gray-400">
                         {entry.date}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
+                        {entry.userEmail || entry.userId}
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex justify-center gap-2">

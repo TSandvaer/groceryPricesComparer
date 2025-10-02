@@ -11,6 +11,7 @@ export interface PriceEntry {
   country: 'SE' | 'DK';
   date: string; // YYYY-MM-DD format
   userId: string;
+  userEmail?: string; // Email of the user who submitted
   createdAt: Date;
 }
 

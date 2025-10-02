@@ -241,6 +241,7 @@ const PriceSubmitForm: React.FC<PriceSubmitFormProps> = ({ user, onSuccess }) =>
         country,
         date,
         userId: user.uid,
+        userEmail: user.email,
       };
 
       // Only add optional fields if they have values
