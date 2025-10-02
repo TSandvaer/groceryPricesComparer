@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Search, TrendingDown, Minus } from 'lucide-react';
+import { Search, TrendingDown, Minus, RefreshCw } from 'lucide-react';
 import { getPriceEntries, calculateAveragePrices } from '../../firebase/firestore';
+import { getExchangeRate, getLastUpdateTime } from '../../services/currencyService';
 import type { AveragePrice, PriceEntry } from '../../types';
 
 const FlagIcon: React.FC<{ country: 'SE' | 'DK' }> = ({ country }) => {
@@ -26,7 +27,6 @@ const FlagIcon: React.FC<{ country: 'SE' | 'DK' }> = ({ country }) => {
 };
 
 const DISPLAY_CURRENCY_KEY = 'groceryPriceComparer_displayCurrency';
-const SEK_TO_DKK_RATE = 0.69; // Same as in firestore.ts
 
 const PriceComparisonView: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,6 +39,8 @@ const PriceComparisonView: React.FC = () => {
     const stored = localStorage.getItem(DISPLAY_CURRENCY_KEY);
     return (stored === 'SEK' || stored === 'DKK') ? stored : 'SEK';
   });
+  const [sekToDkkRate, setSekToDkkRate] = useState<number>(0.69);
+  const [rateLastUpdated, setRateLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
     loadPrices();
@@ -47,9 +49,21 @@ const PriceComparisonView: React.FC = () => {
   const loadPrices = async () => {
     try {
       setLoading(true);
+
+      // Load exchange rate
+      const rate = await getExchangeRate();
+      setSekToDkkRate(rate);
+
+      // Load last update time
+      const lastUpdate = await getLastUpdateTime();
+      setRateLastUpdated(lastUpdate);
+
+      // Load price entries
       const entries = await getPriceEntries();
       setAllEntries(entries);
-      const averages = calculateAveragePrices(entries);
+
+      // Calculate averages with live rate
+      const averages = calculateAveragePrices(entries, rate);
       setAveragePrices(averages);
     } catch (err: any) {
       setError(err.message || 'Failed to load prices');
@@ -66,7 +80,7 @@ const PriceComparisonView: React.FC = () => {
   const convertPrice = (priceInSEK: number | null): number | null => {
     if (priceInSEK === null) return null;
     if (displayCurrency === 'DKK') {
-      return priceInSEK * SEK_TO_DKK_RATE;
+      return priceInSEK * sekToDkkRate;
     }
     return priceInSEK;
   };
@@ -165,6 +179,15 @@ const PriceComparisonView: React.FC = () => {
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
               Showing average price per standard unit (per kg for weight, per L for volume). All prices converted to {displayCurrency} for comparison.
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 flex items-center gap-1">
+              <RefreshCw size={12} />
+              Exchange rate: 1 SEK = {sekToDkkRate.toFixed(4)} DKK
+              {rateLastUpdated && (
+                <span className="ml-1">
+                  (updated {new Date(rateLastUpdated).toLocaleString()})
+                </span>
+              )}
             </p>
           </div>
 

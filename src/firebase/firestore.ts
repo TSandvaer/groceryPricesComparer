@@ -116,10 +116,7 @@ export const bulkDeletePriceEntries = async (entryIds: string[]) => {
   }
 };
 
-// Exchange rate: 1 SEK = X DKK (approximate, should be updated regularly)
-const SEK_TO_DKK_RATE = 0.69; // As of 2025, 1 SEK ≈ 0.69 DKK
-
-export const calculateAveragePrices = (entries: PriceEntry[]) => {
+export const calculateAveragePrices = (entries: PriceEntry[], sekToDkkRate: number = 0.69) => {
   const grouped = entries.reduce((acc, entry) => {
     const key = entry.groceryType.toLowerCase();
     if (!acc[key]) {
@@ -158,7 +155,7 @@ export const calculateAveragePrices = (entries: PriceEntry[]) => {
     // Convert currency to SEK for fair comparison
     let priceInSEK = normalizedPrice;
     if (entry.currency === 'DKK') {
-      priceInSEK = normalizedPrice / SEK_TO_DKK_RATE; // Convert DKK to SEK
+      priceInSEK = normalizedPrice / sekToDkkRate; // Convert DKK to SEK
     }
 
     if (entry.country === 'SE') {

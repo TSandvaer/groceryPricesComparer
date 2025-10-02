@@ -26,5 +26,14 @@ service cloud.firestore {
       // Only admin can create, update, or delete translations
       allow create, update, delete: if isAdmin();
     }
+
+    match /appConfig/{document} {
+      // Anyone authenticated can read app config (including exchange rate)
+      allow read: if request.auth != null;
+
+      // Anyone authenticated can write (for updating exchange rate)
+      // The service will handle checking if update is needed
+      allow write: if request.auth != null;
+    }
   }
 }
