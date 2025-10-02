@@ -1,0 +1,19 @@
+/* Base styles */
+html {
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  background-color: #f9fafb;
+  color: #111827;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom utility classes for consistent styling */
+.container-custom {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
