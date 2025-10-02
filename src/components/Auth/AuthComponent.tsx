@@ -10,10 +10,12 @@ const AuthComponent: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
     if (isSignUp && password !== confirmPassword) {
@@ -24,7 +26,13 @@ const AuthComponent: React.FC = () => {
 
     try {
       if (isSignUp) {
-        await signUp(email, password);
+        const result = await signUp(email, password);
+        if (result.success) {
+          setSuccess(result.message);
+          setEmail('');
+          setPassword('');
+          setConfirmPassword('');
+        }
       } else {
         await signIn(email, password);
       }
@@ -54,6 +62,12 @@ const AuthComponent: React.FC = () => {
           {error && (
             <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm">
               {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-green-700 dark:text-green-300 text-sm">
+              {success}
             </div>
           )}
 
@@ -150,6 +164,7 @@ const AuthComponent: React.FC = () => {
               onClick={() => {
                 setIsSignUp(!isSignUp);
                 setError('');
+                setSuccess('');
                 setPassword('');
                 setConfirmPassword('');
               }}

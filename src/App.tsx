@@ -6,11 +6,12 @@ import PriceSubmitForm from './components/PriceSubmit/PriceSubmitForm';
 import PriceComparisonView from './components/PriceComparison/PriceComparisonView';
 import AdminEditView from './components/Admin/AdminEditView';
 import TranslationsView from './components/Admin/TranslationsView';
+import UserRequestsView from './components/Admin/UserRequestsView';
 import { useLanguage } from './contexts/LanguageContext';
 
 function App() {
   const { user, loading } = useAuth();
-  const [currentView, setCurrentView] = useState<'compare' | 'submit' | 'edit' | 'translations'>('compare');
+  const [currentView, setCurrentView] = useState<'compare' | 'submit' | 'edit' | 'translations' | 'userRequests'>('compare');
   const { t } = useLanguage();
 
   if (loading) {
@@ -41,8 +42,10 @@ function App() {
           <PriceSubmitForm user={user} onSuccess={() => setCurrentView('compare')} />
         ) : currentView === 'edit' ? (
           <AdminEditView />
-        ) : (
+        ) : currentView === 'translations' ? (
           <TranslationsView />
+        ) : (
+          <UserRequestsView user={user} />
         )}
       </main>
     </div>

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingCart, LogOut, BarChart3, Plus, Edit2, Languages, Globe, ChevronDown, Menu, X } from 'lucide-react';
+import { ShoppingCart, LogOut, BarChart3, Plus, Edit2, Languages, Globe, ChevronDown, Menu, X, UserCheck } from 'lucide-react';
 import { signOut } from '../../firebase/auth';
 import { isAdmin } from '../../utils/adminUtils';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -7,8 +7,8 @@ import type { User } from 'firebase/auth';
 
 interface HeaderProps {
   user: User;
-  currentView: 'compare' | 'submit' | 'edit' | 'translations';
-  setCurrentView: (view: 'compare' | 'submit' | 'edit' | 'translations') => void;
+  currentView: 'compare' | 'submit' | 'edit' | 'translations' | 'userRequests';
+  setCurrentView: (view: 'compare' | 'submit' | 'edit' | 'translations' | 'userRequests') => void;
 }
 
 const FlagSVG: React.FC<{ country: 'en' | 'da' | 'sv' }> = ({ country }) => {
@@ -154,6 +154,17 @@ const Header: React.FC<HeaderProps> = ({ user, currentView, setCurrentView }) =>
                     <Languages size={18} />
                     Translations
                   </button>
+                  <button
+                    onClick={() => setCurrentView('userRequests')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      currentView === 'userRequests'
+                        ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                        : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <UserCheck size={18} />
+                    User Requests
+                  </button>
                 </>
               )}
             </div>
@@ -288,6 +299,20 @@ const Header: React.FC<HeaderProps> = ({ user, currentView, setCurrentView }) =>
                   >
                     <Languages size={18} />
                     Translations
+                  </button>
+                  <button
+                    onClick={() => {
+                      setCurrentView('userRequests');
+                      setShowMobileMenu(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                      currentView === 'userRequests'
+                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <UserCheck size={18} />
+                    User Requests
                   </button>
                 </>
               )}

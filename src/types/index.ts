@@ -44,3 +44,13 @@ export interface Translation {
   da: string;        // Danish translation
   sv: string;        // Swedish translation
 }
+
+export interface UserRequest {
+  id: string;
+  email: string;
+  password: string;  // Will be hashed before storage
+  status: 'pending' | 'approved' | 'rejected';
+  requestedAt: Date;
+  reviewedAt?: Date;
+  reviewedBy?: string;  // Admin email who reviewed
+}
