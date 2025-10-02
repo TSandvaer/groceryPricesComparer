@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Upload, Check } from 'lucide-react';
 import { createPriceEntry, getPriceEntries } from '../../firebase/firestore';
 import type { User } from 'firebase/auth';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface PriceSubmitFormProps {
   user: User;
@@ -37,7 +38,8 @@ const PriceSubmitForm: React.FC<PriceSubmitFormProps> = ({ user, onSuccess }) =>
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraActive, setCameraActive] = useState(false);
-
+  const { t } = useLanguage();
+  
   useEffect(() => {
     loadGroceryTypes();
   }, []);
@@ -504,11 +506,11 @@ const PriceSubmitForm: React.FC<PriceSubmitFormProps> = ({ user, onSuccess }) =>
                 onChange={(e) => setUnit(e.target.value as 'gram' | 'kilogram' | 'milliliter' | 'liter' | 'pieces')}
                 className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100"
               >
-                <option value="gram">Gram (g)</option>
+                <option value="gram">{t('Grams (g)')}</option>
                 <option value="kilogram">Kilogram (kg)</option>
                 <option value="milliliter">Milliliter (ml)</option>
-                <option value="liter">Liter (L)</option>
-                <option value="pieces">Pieces (pcs)</option>
+                <option value="liter">{t('Liters (L)')}</option>
+                <option value="pieces">{t('Pieces (pcs)')}</option>
               </select>
             </div>
           </div>
