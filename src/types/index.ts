@@ -36,3 +36,10 @@ export interface VisionApiResponse {
     store?: string;
   };
 }
+
+export interface Translation {
+  id: string;        // English text (key)
+  en: string;        // English translation
+  da: string;        // Danish translation
+  sv: string;        // Swedish translation
+}

@@ -25,6 +25,9 @@ const FlagIcon: React.FC<{ country: 'SE' | 'DK' }> = ({ country }) => {
   }
 };
 
+const DISPLAY_CURRENCY_KEY = 'groceryPriceComparer_displayCurrency';
+const SEK_TO_DKK_RATE = 0.69; // Same as in firestore.ts
+
 const PriceComparisonView: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [averagePrices, setAveragePrices] = useState<AveragePrice[]>([]);
@@ -32,6 +35,10 @@ const PriceComparisonView: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showBothCountriesOnly, setShowBothCountriesOnly] = useState(false);
+  const [displayCurrency, setDisplayCurrency] = useState<'SEK' | 'DKK'>(() => {
+    const stored = localStorage.getItem(DISPLAY_CURRENCY_KEY);
+    return (stored === 'SEK' || stored === 'DKK') ? stored : 'SEK';
+  });
 
   useEffect(() => {
     loadPrices();
@@ -49,6 +56,19 @@ const PriceComparisonView: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCurrencyChange = (currency: 'SEK' | 'DKK') => {
+    setDisplayCurrency(currency);
+    localStorage.setItem(DISPLAY_CURRENCY_KEY, currency);
+  };
+
+  const convertPrice = (priceInSEK: number | null): number | null => {
+    if (priceInSEK === null) return null;
+    if (displayCurrency === 'DKK') {
+      return priceInSEK * SEK_TO_DKK_RATE;
+    }
+    return priceInSEK;
   };
 
   const filteredPrices = averagePrices.filter(item => {
@@ -135,12 +155,40 @@ const PriceComparisonView: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          Price Comparison
-        </h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-          Showing average price per standard unit (per kg for weight, per L for volume). All prices converted to SEK for comparison.
-        </p>
+        <div className="flex items-start justify-between mb-2">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Price Comparison
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Showing average price per standard unit (per kg for weight, per L for volume). All prices converted to {displayCurrency} for comparison.
+            </p>
+          </div>
+
+          {/* Currency Toggle */}
+          <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            <button
+              onClick={() => handleCurrencyChange('SEK')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                displayCurrency === 'SEK'
+                  ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              SEK
+            </button>
+            <button
+              onClick={() => handleCurrencyChange('DKK')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                displayCurrency === 'DKK'
+                  ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              DKK
+            </button>
+          </div>
+        </div>
 
         {/* Search Bar and Filter */}
         <div className="mb-6 space-y-4">
@@ -201,10 +249,10 @@ const PriceComparisonView: React.FC = () => {
                     Item
                   </th>
                   <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                    Sweden (SEK)
+                    Sweden ({displayCurrency})
                   </th>
                   <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                    Denmark (DKK)
+                    Denmark ({displayCurrency})
                   </th>
                   <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Cheaper
@@ -234,10 +282,10 @@ const PriceComparisonView: React.FC = () => {
                         </div>
                       </td>
                       <td className="text-right py-4 px-4 text-gray-900 dark:text-gray-100">
-                        {item.avgPriceSE !== null ? `${item.avgPriceSE.toFixed(2)} SEK${getUnitForDisplay(item.groceryType)}` : 'N/A'}
+                        {item.avgPriceSE !== null ? `${convertPrice(item.avgPriceSE)!.toFixed(2)} ${displayCurrency}${getUnitForDisplay(item.groceryType)}` : 'N/A'}
                       </td>
                       <td className="text-right py-4 px-4 text-gray-900 dark:text-gray-100">
-                        {item.avgPriceDK !== null ? `${item.avgPriceDK.toFixed(2)} DKK${getUnitForDisplay(item.groceryType)}` : 'N/A'}
+                        {item.avgPriceDK !== null ? `${convertPrice(item.avgPriceDK)!.toFixed(2)} ${displayCurrency}${getUnitForDisplay(item.groceryType)}` : 'N/A'}
                       </td>
                       <td className="text-center py-4 px-4">
                         <div className="flex items-center justify-center gap-2">
@@ -250,16 +298,7 @@ const PriceComparisonView: React.FC = () => {
                       </td>
                       <td className="text-right py-4 px-4">
                         {item.percentDifference !== null ? (
-                          <span
-                            className={`text-sm font-medium ${
-                              item.percentDifference > 0
-                                ? 'text-red-600 dark:text-red-400'
-                                : item.percentDifference < 0
-                                ? 'text-green-600 dark:text-green-400'
-                                : 'text-gray-600 dark:text-gray-400'
-                            }`}
-                          >
-                            {item.percentDifference > 0 ? '+' : ''}
+                          <span className="text-sm font-medium text-green-600 dark:text-green-400">
                             {item.percentDifference.toFixed(1)}%
                           </span>
                         ) : (

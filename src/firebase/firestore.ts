@@ -8,12 +8,14 @@ import {
   QueryConstraint,
   doc,
   updateDoc,
-  deleteDoc
+  deleteDoc,
+  setDoc
 } from 'firebase/firestore';
 import { db } from './config';
-import type { PriceEntry } from '../types';
+import type { PriceEntry, Translation } from '../types';
 
 const PRICE_ENTRIES_COLLECTION = 'priceEntries';
+const TRANSLATIONS_COLLECTION = 'translations';
 
 export const createPriceEntry = async (entry: Omit<PriceEntry, 'id' | 'createdAt'>) => {
   try {
@@ -163,6 +165,11 @@ export const calculateAveragePrices = (entries: PriceEntry[]) => {
       ? prices.dk.reduce((a, b) => a + b, 0) / prices.dk.length
       : null;
 
+    // Calculate savings: always negative, showing % saved by buying from cheaper country
+    const percentDifference = avgSE && avgDK
+      ? -Math.abs(((Math.max(avgSE, avgDK) - Math.min(avgSE, avgDK)) / Math.max(avgSE, avgDK)) * 100)
+      : null;
+
     return {
       groceryType,
       avgPriceSE: avgSE,
@@ -170,7 +177,65 @@ export const calculateAveragePrices = (entries: PriceEntry[]) => {
       countSE: prices.se.length,
       countDK: prices.dk.length,
       difference: avgSE && avgDK ? avgDK - avgSE : null,
-      percentDifference: avgSE && avgDK ? ((avgDK - avgSE) / avgSE) * 100 : null,
+      percentDifference,
     };
   });
+};
+
+// Translation Management Functions
+
+export const getTranslations = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(db, TRANSLATIONS_COLLECTION));
+    const translations: Translation[] = [];
+    querySnapshot.forEach((doc) => {
+      translations.push({
+        id: doc.id,
+        ...doc.data(),
+      } as Translation);
+    });
+    return translations;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const createTranslation = async (translation: Omit<Translation, 'id'>) => {
+  try {
+    // Use the English text as the document ID
+    const translationRef = doc(db, TRANSLATIONS_COLLECTION, translation.en);
+    await setDoc(translationRef, {
+      en: translation.en,
+      da: translation.da,
+      sv: translation.sv,
+    });
+    return translation.en;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateTranslation = async (id: string, updates: Partial<Omit<Translation, 'id'>>) => {
+  try {
+    const cleanedUpdates: any = {};
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value !== undefined) {
+        cleanedUpdates[key] = value;
+      }
+    });
+
+    const translationRef = doc(db, TRANSLATIONS_COLLECTION, id);
+    await updateDoc(translationRef, cleanedUpdates);
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteTranslation = async (id: string) => {
+  try {
+    const translationRef = doc(db, TRANSLATIONS_COLLECTION, id);
+    await deleteDoc(translationRef);
+  } catch (error) {
+    throw error;
+  }
 };

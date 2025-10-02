@@ -5,10 +5,13 @@ import Header from './components/Layout/Header';
 import PriceSubmitForm from './components/PriceSubmit/PriceSubmitForm';
 import PriceComparisonView from './components/PriceComparison/PriceComparisonView';
 import AdminEditView from './components/Admin/AdminEditView';
+import TranslationsView from './components/Admin/TranslationsView';
+import { useLanguage } from './contexts/LanguageContext';
 
 function App() {
   const { user, loading } = useAuth();
-  const [currentView, setCurrentView] = useState<'compare' | 'submit' | 'edit'>('compare');
+  const [currentView, setCurrentView] = useState<'compare' | 'submit' | 'edit' | 'translations'>('compare');
+  const { t } = useLanguage();
 
   if (loading) {
     return (
@@ -16,7 +19,7 @@ function App() {
         <div className="text-center">
           <div className="rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mx-auto mb-4 animate-spin"></div>
           <h2 className="text-xl font-medium text-gray-900 dark:text-white">
-            Grocery Price Comparer
+            {t('Price Comparer')}
           </h2>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Loading...</p>
         </div>
@@ -36,8 +39,10 @@ function App() {
           <PriceComparisonView />
         ) : currentView === 'submit' ? (
           <PriceSubmitForm user={user} onSuccess={() => setCurrentView('compare')} />
-        ) : (
+        ) : currentView === 'edit' ? (
           <AdminEditView />
+        ) : (
+          <TranslationsView />
         )}
       </main>
     </div>

@@ -18,5 +18,13 @@ service cloud.firestore {
       allow update, delete: if request.auth != null
         && (resource.data.userId == request.auth.uid || isAdmin());
     }
+
+    match /translations/{translation} {
+      // Anyone authenticated can read translations
+      allow read: if request.auth != null;
+
+      // Only admin can create, update, or delete translations
+      allow create, update, delete: if isAdmin();
+    }
   }
 }
