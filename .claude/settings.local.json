@@ -4,7 +4,8 @@
       "Read(//c/Trunk/foodweekplanner/**)",
       "Bash(npx vite:*)",
       "Bash(npm run dev:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []

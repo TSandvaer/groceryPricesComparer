@@ -45,6 +45,9 @@ const AdminEditView: React.FC = () => {
       groceryBrandName: entry.groceryBrandName,
       price: entry.price,
       currency: entry.currency,
+      quantity: entry.quantity ?? 1,
+      amount: entry.amount ?? 0,
+      unit: entry.unit ?? 'liter',
       store: entry.store,
       country: entry.country,
       date: entry.date,
@@ -126,6 +129,7 @@ const AdminEditView: React.FC = () => {
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Type</th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Brand</th>
                 <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Price</th>
+                <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Qty × Amount</th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Store</th>
                 <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Country</th>
                 <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Date</th>
@@ -161,6 +165,37 @@ const AdminEditView: React.FC = () => {
                           onChange={(e) => setEditForm({ ...editForm, price: parseFloat(e.target.value) })}
                           className="w-full px-2 py-1 border rounded text-sm text-right dark:bg-gray-700 dark:border-gray-600"
                         />
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex gap-1 items-center justify-center">
+                          <input
+                            type="number"
+                            step="1"
+                            value={editForm.quantity || ''}
+                            onChange={(e) => setEditForm({ ...editForm, quantity: parseFloat(e.target.value) })}
+                            className="w-12 px-2 py-1 border rounded text-sm text-right dark:bg-gray-700 dark:border-gray-600"
+                            placeholder="Qty"
+                          />
+                          <span className="text-gray-500">×</span>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={editForm.amount || ''}
+                            onChange={(e) => setEditForm({ ...editForm, amount: parseFloat(e.target.value) })}
+                            className="w-16 px-2 py-1 border rounded text-sm text-right dark:bg-gray-700 dark:border-gray-600"
+                            placeholder="Amt"
+                          />
+                          <select
+                            value={editForm.unit || ''}
+                            onChange={(e) => setEditForm({ ...editForm, unit: e.target.value as 'gram' | 'kilogram' | 'milliliter' | 'liter' })}
+                            className="px-2 py-1 border rounded text-sm dark:bg-gray-700 dark:border-gray-600"
+                          >
+                            <option value="gram">g</option>
+                            <option value="kilogram">kg</option>
+                            <option value="milliliter">ml</option>
+                            <option value="liter">L</option>
+                          </select>
+                        </div>
                       </td>
                       <td className="py-3 px-4">
                         <input
@@ -210,11 +245,16 @@ const AdminEditView: React.FC = () => {
                   ) : (
                     <>
                       <td className="py-3 px-4 text-gray-900 dark:text-gray-100">{entry.groceryType}</td>
-                      <td className="py-3 px-4 text-gray-900 dark:text-gray-100">{entry.groceryBrandName}</td>
+                      <td className="py-3 px-4 text-gray-900 dark:text-gray-100">{entry.groceryBrandName || '-'}</td>
                       <td className="py-3 px-4 text-right text-gray-900 dark:text-gray-100">
                         {entry.price.toFixed(2)} {entry.currency}
                       </td>
-                      <td className="py-3 px-4 text-gray-900 dark:text-gray-100">{entry.store}</td>
+                      <td className="py-3 px-4 text-center text-gray-900 dark:text-gray-100">
+                        {entry.quantity && entry.amount && entry.unit
+                          ? `${entry.quantity} × ${entry.amount} ${entry.unit === 'gram' ? 'g' : entry.unit === 'kilogram' ? 'kg' : entry.unit === 'milliliter' ? 'ml' : 'L'}`
+                          : '-'}
+                      </td>
+                      <td className="py-3 px-4 text-gray-900 dark:text-gray-100">{entry.store || '-'}</td>
                       <td className="py-3 px-4 text-center">
                         <span className={`px-2 py-1 rounded text-xs font-medium ${
                           entry.country === 'SE'

@@ -78,8 +78,16 @@ export const getPriceEntries = async (filters?: {
 
 export const updatePriceEntry = async (entryId: string, updates: Partial<Omit<PriceEntry, 'id' | 'createdAt'>>) => {
   try {
+    // Remove undefined values from updates object
+    const cleanedUpdates: any = {};
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value !== undefined) {
+        cleanedUpdates[key] = value;
+      }
+    });
+
     const entryRef = doc(db, PRICE_ENTRIES_COLLECTION, entryId);
-    await updateDoc(entryRef, updates);
+    await updateDoc(entryRef, cleanedUpdates);
   } catch (error) {
     throw error;
   }
@@ -94,16 +102,55 @@ export const deletePriceEntry = async (entryId: string) => {
   }
 };
 
+// Exchange rate: 1 SEK = X DKK (approximate, should be updated regularly)
+const SEK_TO_DKK_RATE = 0.69; // As of 2025, 1 SEK ≈ 0.69 DKK
+
 export const calculateAveragePrices = (entries: PriceEntry[]) => {
   const grouped = entries.reduce((acc, entry) => {
     const key = entry.groceryType.toLowerCase();
     if (!acc[key]) {
       acc[key] = { se: [], dk: [] };
     }
+
+    // Calculate normalized price per standard unit
+    const quantity = entry.quantity || 1;
+    const amount = entry.amount || 1;
+    const unit = entry.unit;
+
+    // Convert to base units (grams or milliliters)
+    let amountInBaseUnit = amount;
+    if (unit === 'kilogram') {
+      amountInBaseUnit = amount * 1000; // convert kg to grams
+    } else if (unit === 'liter') {
+      amountInBaseUnit = amount * 1000; // convert liters to milliliters
+    }
+
+    // Total amount in base units for all items
+    const totalAmount = amountInBaseUnit * quantity;
+
+    // Price per base unit (per gram or per milliliter)
+    const pricePerBaseUnit = totalAmount > 0 ? entry.price / totalAmount : entry.price / quantity;
+
+    // Convert to price per standard unit (per kilogram or per liter)
+    // If original unit was weight (gram/kg), normalize to per kilogram
+    // If original unit was volume (ml/L), normalize to per liter
+    let normalizedPrice = pricePerBaseUnit;
+    if (unit === 'gram' || unit === 'kilogram') {
+      normalizedPrice = pricePerBaseUnit * 1000; // price per kilogram
+    } else if (unit === 'milliliter' || unit === 'liter') {
+      normalizedPrice = pricePerBaseUnit * 1000; // price per liter
+    }
+
+    // Convert currency to SEK for fair comparison
+    let priceInSEK = normalizedPrice;
+    if (entry.currency === 'DKK') {
+      priceInSEK = normalizedPrice / SEK_TO_DKK_RATE; // Convert DKK to SEK
+    }
+
     if (entry.country === 'SE') {
-      acc[key].se.push(entry.price);
+      acc[key].se.push(priceInSEK);
     } else if (entry.country === 'DK') {
-      acc[key].dk.push(entry.price);
+      acc[key].dk.push(priceInSEK);
     }
     return acc;
   }, {} as Record<string, { se: number[], dk: number[] }>);
