@@ -6,7 +6,7 @@ export interface PriceEntry {
   currency: string;
   quantity?: number; // e.g., 10 (number of items)
   amount?: number; // e.g., 100, 1, 1.5 (size per item)
-  unit?: 'gram' | 'kilogram' | 'milliliter' | 'liter';
+  unit?: 'gram' | 'kilogram' | 'milliliter' | 'liter' | 'pieces';
   store?: string;
   country: 'SE' | 'DK';
   date: string; // YYYY-MM-DD format
@@ -33,7 +33,7 @@ export interface VisionApiResponse {
     price?: number;
     quantity?: number;
     amount?: number;
-    unit?: 'gram' | 'kilogram' | 'milliliter' | 'liter';
+    unit?: 'gram' | 'kilogram' | 'milliliter' | 'liter' | 'pieces';
     store?: string;
   };
 }

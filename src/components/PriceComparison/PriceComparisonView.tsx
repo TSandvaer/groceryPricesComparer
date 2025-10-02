@@ -125,7 +125,8 @@ const PriceComparisonView: React.FC = () => {
       'gram': 'g',
       'kilogram': 'kg',
       'milliliter': 'ml',
-      'liter': 'L'
+      'liter': 'L',
+      'pieces': 'pcs'
     };
 
     if (units.size === 1) {
@@ -143,12 +144,14 @@ const PriceComparisonView: React.FC = () => {
 
     const units = new Set(entries.map(e => e.unit).filter(u => u));
 
-    // Determine if this is weight or volume based on the units used
+    // Determine if this is weight, volume, or pieces based on the units used
     const hasWeight = Array.from(units).some(u => u === 'gram' || u === 'kilogram');
     const hasVolume = Array.from(units).some(u => u === 'milliliter' || u === 'liter');
+    const hasPieces = Array.from(units).some(u => u === 'pieces');
 
-    if (hasWeight && !hasVolume) return '/kg';
-    if (hasVolume && !hasWeight) return '/L';
+    if (hasWeight && !hasVolume && !hasPieces) return '/kg';
+    if (hasVolume && !hasWeight && !hasPieces) return '/L';
+    if (hasPieces && !hasWeight && !hasVolume) return '/pcs';
     return '';
   };
 

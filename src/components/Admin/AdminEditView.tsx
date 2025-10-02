@@ -315,13 +315,14 @@ const AdminEditView: React.FC = () => {
                           />
                           <select
                             value={editForm.unit || ''}
-                            onChange={(e) => setEditForm({ ...editForm, unit: e.target.value as 'gram' | 'kilogram' | 'milliliter' | 'liter' })}
+                            onChange={(e) => setEditForm({ ...editForm, unit: e.target.value as 'gram' | 'kilogram' | 'milliliter' | 'liter' | 'pieces' })}
                             className="px-2 py-1 border rounded text-sm dark:bg-gray-700 dark:border-gray-600"
                           >
                             <option value="gram">g</option>
                             <option value="kilogram">kg</option>
                             <option value="milliliter">ml</option>
                             <option value="liter">L</option>
+                            <option value="pieces">pcs</option>
                           </select>
                         </div>
                       </td>
@@ -382,7 +383,7 @@ const AdminEditView: React.FC = () => {
                       </td>
                       <td className="py-3 px-4 text-center text-gray-900 dark:text-gray-100">
                         {entry.quantity && entry.amount && entry.unit
-                          ? `${entry.quantity} × ${entry.amount} ${entry.unit === 'gram' ? 'g' : entry.unit === 'kilogram' ? 'kg' : entry.unit === 'milliliter' ? 'ml' : 'L'}`
+                          ? `${entry.quantity} × ${entry.amount} ${entry.unit === 'gram' ? 'g' : entry.unit === 'kilogram' ? 'kg' : entry.unit === 'milliliter' ? 'ml' : entry.unit === 'liter' ? 'L' : 'pcs'}`
                           : '-'}
                       </td>
                       <td className="py-3 px-4 text-gray-900 dark:text-gray-100">{entry.store || '-'}</td>
