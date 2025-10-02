@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Upload, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Check } from 'lucide-react';
 import { createPriceEntry, getPriceEntries } from '../../firebase/firestore';
 import type { User } from 'firebase/auth';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -23,7 +23,6 @@ const PriceSubmitForm: React.FC<PriceSubmitFormProps> = ({ user, onSuccess }) =>
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [imageProcessing, setImageProcessing] = useState(false);
 
   const [groceryTypeSuggestions, setGroceryTypeSuggestions] = useState<string[]>([]);
   const [brandNameSuggestions, setBrandNameSuggestions] = useState<string[]>([]);
@@ -35,9 +34,6 @@ const PriceSubmitForm: React.FC<PriceSubmitFormProps> = ({ user, onSuccess }) =>
   const [allBrandNames, setAllBrandNames] = useState<string[]>([]);
   const [allStores, setAllStores] = useState<string[]>([]);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [cameraActive, setCameraActive] = useState(false);
   const { t } = useLanguage();
   
   useEffect(() => {
@@ -147,86 +143,6 @@ const PriceSubmitForm: React.FC<PriceSubmitFormProps> = ({ user, onSuccess }) =>
     setStoreSuggestions([]);
   };
 
-  const handleCameraCapture = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        setCameraActive(true);
-      }
-    } catch (err) {
-      setError('Unable to access camera. Please check permissions.');
-    }
-  };
-
-  const capturePhoto = () => {
-    if (videoRef.current) {
-      const canvas = document.createElement('canvas');
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(videoRef.current, 0, 0);
-        canvas.toBlob((blob) => {
-          if (blob) {
-            processImage(blob);
-          }
-        }, 'image/jpeg');
-      }
-      stopCamera();
-    }
-  };
-
-  const stopCamera = () => {
-    if (videoRef.current?.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
-      videoRef.current.srcObject = null;
-      setCameraActive(false);
-    }
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      processImage(file);
-    }
-  };
-
-  const processImage = async (imageBlob: Blob) => {
-    setImageProcessing(true);
-    setError('');
-
-    try {
-      // Convert image to base64
-      const reader = new FileReader();
-      reader.readAsDataURL(imageBlob);
-      reader.onloadend = async () => {
-        // const base64Image = reader.result as string;
-
-        // TODO: Call Google Vision API
-        // For now, we'll show a placeholder message
-        setError('Vision API integration required. Please fill in the form manually.');
-
-        // Example of what Vision API would return:
-        // const response = await callVisionAPI(base64Image);
-
-        // Example of what Vision API would return:
-        // const response = await callVisionAPI(base64Image);
-        // setGroceryType(response.groceryType || '');
-        // setPrice(response.price?.toString() || '');
-        // setStore(response.store || '');
-
-        setImageProcessing(false);
-      };
-    } catch (err) {
-      setError('Failed to process image. Please try again.');
-      setImageProcessing(false);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -288,69 +204,6 @@ const PriceSubmitForm: React.FC<PriceSubmitFormProps> = ({ user, onSuccess }) =>
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
           Submit Price Entry
         </h2>
-
-        {/* Camera/Upload Section */}
-        <div className="mb-6 space-y-4">
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={handleCameraCapture}
-              disabled={cameraActive || imageProcessing}
-              className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <Camera size={20} />
-              Capture Photo
-            </button>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={imageProcessing}
-              className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <Upload size={20} />
-              Upload Image
-            </button>
-          </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileUpload}
-            className="hidden"
-          />
-
-          {cameraActive && (
-            <div className="relative">
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                className="w-full rounded-lg"
-              />
-              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
-                <button
-                  onClick={capturePhoto}
-                  className="bg-white text-gray-900 px-6 py-2 rounded-full font-medium shadow-lg hover:bg-gray-100"
-                >
-                  Capture
-                </button>
-                <button
-                  onClick={stopCamera}
-                  className="bg-red-500 text-white px-6 py-2 rounded-full font-medium shadow-lg hover:bg-red-600"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-
-          {imageProcessing && (
-            <div className="text-center py-4">
-              <div className="inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Processing image...</p>
-            </div>
-          )}
-        </div>
 
         {error && (
           <div className="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg text-yellow-800 dark:text-yellow-300 text-sm">
