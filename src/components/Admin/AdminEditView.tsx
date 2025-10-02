@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, Edit2, Save, X, Search } from 'lucide-react';
-import { getPriceEntries, deletePriceEntry, updatePriceEntry } from '../../firebase/firestore';
+import { Trash2, Edit2, Save, X, Search, Filter } from 'lucide-react';
+import { getPriceEntries, deletePriceEntry, updatePriceEntry, bulkDeletePriceEntries } from '../../firebase/firestore';
 import type { PriceEntry } from '../../types';
 
 const AdminEditView: React.FC = () => {
@@ -10,6 +10,9 @@ const AdminEditView: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<PriceEntry>>({});
+  const [showBulkDelete, setShowBulkDelete] = useState(false);
+  const [bulkDeleteDate, setBulkDeleteDate] = useState('');
+  const [bulkDeleteUser, setBulkDeleteUser] = useState('');
 
   useEffect(() => {
     loadEntries();
@@ -73,6 +76,67 @@ const AdminEditView: React.FC = () => {
     }
   };
 
+  const handleBulkDeleteByDate = async () => {
+    if (!bulkDeleteDate) {
+      setError('Please select a date');
+      return;
+    }
+
+    const cutoffDate = new Date(bulkDeleteDate);
+    const entriesToDelete = entries.filter(entry => new Date(entry.createdAt) < cutoffDate);
+
+    if (entriesToDelete.length === 0) {
+      setError('No entries found older than the selected date');
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete ${entriesToDelete.length} entries older than ${bulkDeleteDate}?`)) {
+      return;
+    }
+
+    try {
+      await bulkDeletePriceEntries(entriesToDelete.map(e => e.id));
+      setEntries(entries.filter(e => new Date(e.createdAt) >= cutoffDate));
+      setBulkDeleteDate('');
+      setShowBulkDelete(false);
+      setError('');
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete entries');
+    }
+  };
+
+  const handleBulkDeleteByUser = async () => {
+    if (!bulkDeleteUser.trim()) {
+      setError('Please enter a user email or ID');
+      return;
+    }
+
+    const searchTerm = bulkDeleteUser.toLowerCase().trim();
+    const entriesToDelete = entries.filter(entry =>
+      entry.userEmail?.toLowerCase().includes(searchTerm) ||
+      entry.userId.toLowerCase().includes(searchTerm)
+    );
+
+    if (entriesToDelete.length === 0) {
+      setError('No entries found for the specified user');
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete ${entriesToDelete.length} entries by user "${bulkDeleteUser}"?`)) {
+      return;
+    }
+
+    try {
+      await bulkDeletePriceEntries(entriesToDelete.map(e => e.id));
+      setEntries(entries.filter(e => !entriesToDelete.includes(e)));
+      setBulkDeleteUser('');
+      setShowBulkDelete(false);
+      setError('');
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete entries');
+    }
+  };
+
   const filteredEntries = entries.filter(entry =>
     entry.groceryType.toLowerCase().includes(searchTerm.toLowerCase()) ||
     entry.groceryBrandName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -97,9 +161,70 @@ const AdminEditView: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-          Admin: Edit Entries
-        </h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Admin: Edit Entries
+          </h2>
+          <button
+            onClick={() => setShowBulkDelete(!showBulkDelete)}
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+          >
+            <Filter size={18} />
+            Bulk Delete
+          </button>
+        </div>
+
+        {/* Bulk Delete Panel */}
+        {showBulkDelete && (
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <h3 className="text-lg font-semibold text-red-900 dark:text-red-300 mb-4">Bulk Delete Options</h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Delete by Date */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Delete entries older than:
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="datetime-local"
+                    value={bulkDeleteDate}
+                    onChange={(e) => setBulkDeleteDate(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:text-gray-100"
+                  />
+                  <button
+                    onClick={handleBulkDeleteByDate}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+
+              {/* Delete by User */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Delete entries by user:
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={bulkDeleteUser}
+                    onChange={(e) => setBulkDeleteUser(e.target.value)}
+                    placeholder="Enter email or user ID"
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:text-gray-100"
+                  />
+                  <button
+                    onClick={handleBulkDeleteByUser}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Search Bar */}
         <div className="mb-6">

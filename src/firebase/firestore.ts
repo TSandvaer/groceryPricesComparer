@@ -104,6 +104,18 @@ export const deletePriceEntry = async (entryId: string) => {
   }
 };
 
+export const bulkDeletePriceEntries = async (entryIds: string[]) => {
+  try {
+    const deletePromises = entryIds.map(id => {
+      const entryRef = doc(db, PRICE_ENTRIES_COLLECTION, id);
+      return deleteDoc(entryRef);
+    });
+    await Promise.all(deletePromises);
+  } catch (error) {
+    throw error;
+  }
+};
+
 // Exchange rate: 1 SEK = X DKK (approximate, should be updated regularly)
 const SEK_TO_DKK_RATE = 0.69; // As of 2025, 1 SEK ≈ 0.69 DKK
 
