@@ -335,7 +335,19 @@ const UserRequestsView: React.FC<UserRequestsViewProps> = ({ user }) => {
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      {getStatusBadge(request.status)}
+                      <div className="flex items-center gap-2">
+                        {getStatusBadge(request.status)}
+                        {request.status === 'approved' && users.find(u => u.email === request.email) && (
+                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                            Logged in
+                          </span>
+                        )}
+                        {request.status === 'approved' && !users.find(u => u.email === request.email) && (
+                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+                            Not logged in yet
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-4 px-4 text-sm text-gray-600 dark:text-gray-400">
                       {new Date(request.requestedAt).toLocaleString()}

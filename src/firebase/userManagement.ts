@@ -201,13 +201,16 @@ export const checkUserRequestStatus = async (email: string): Promise<UserRequest
 
 export const createOrUpdateUser = async (userId: string, email: string, isDataContributor: boolean = false) => {
   try {
+    console.log('createOrUpdateUser called with:', { userId, email, isDataContributor });
     const userRef = doc(db, USERS_COLLECTION, userId);
     const userDoc = await getDoc(userRef);
+    console.log('User document exists:', userDoc.exists());
 
     // Check for temporary user document
     const tempUserId = `pending_${email.replace(/[^a-zA-Z0-9]/g, '_')}`;
     const tempUserRef = doc(db, USERS_COLLECTION, tempUserId);
     const tempUserDoc = await getDoc(tempUserRef);
+    console.log('Temp user document exists:', tempUserDoc.exists(), 'tempUserId:', tempUserId);
 
     if (!userDoc.exists()) {
       // Create new user, migrating data from temp user if it exists
@@ -218,11 +221,16 @@ export const createOrUpdateUser = async (userId: string, email: string, isDataCo
         lastLogin: Timestamp.now(),
       };
 
+      console.log('Creating new user document with data:', userData);
       await setDoc(userRef, userData);
+      console.log('User document created successfully');
 
-      // Delete temp user document if it exists (admin will do this via cloud function or we skip for now)
-      // Since users can't delete docs they don't own, we'll leave cleanup to admin or let it be
-      // The temp doc won't interfere since we check by UID
+      // Delete temp user document if it exists
+      if (tempUserDoc.exists()) {
+        console.log('Deleting temp user document');
+        await deleteDoc(tempUserRef);
+        console.log('Temp user document deleted');
+      }
     } else {
       // Update last login and remove isPending flag if it exists
       const updateData: any = {
@@ -233,7 +241,9 @@ export const createOrUpdateUser = async (userId: string, email: string, isDataCo
         updateData.isPending = deleteField();
       }
 
+      console.log('Updating existing user document with data:', updateData);
       await updateDoc(userRef, updateData);
+      console.log('User document updated successfully');
     }
   } catch (error) {
     console.error('Error in createOrUpdateUser:', error);
@@ -274,12 +284,16 @@ export const getAllUsers = async (): Promise<User[]> => {
     const querySnapshot = await getDocs(collection(db, USERS_COLLECTION));
     const users: User[] = [];
 
+    console.log('Total documents in users collection:', querySnapshot.size);
+
     querySnapshot.forEach((doc) => {
       const data = doc.data();
+      console.log('User document:', doc.id, data);
 
       // Filter out temp users that have been replaced (check if real user exists)
       if (doc.id.startsWith('pending_')) {
         // This is a temp user, skip it if the real user exists
+        console.log('Skipping temp user:', doc.id);
         return;
       }
 
@@ -293,8 +307,10 @@ export const getAllUsers = async (): Promise<User[]> => {
       } as User);
     });
 
+    console.log('Filtered users:', users);
     return users;
   } catch (error) {
+    console.error('Error in getAllUsers:', error);
     throw error;
   }
 };

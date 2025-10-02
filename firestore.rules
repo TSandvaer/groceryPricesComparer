@@ -28,9 +28,10 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // Users can read their own document, admin can read all
-      allow read: if request.auth != null &&
-        (request.auth.uid == userId || isAdmin());
+      // Admin can list all users, users can read their own document or temp documents
+      allow list: if isAdmin();
+      allow get: if request.auth != null &&
+        (request.auth.uid == userId || userId.matches('pending_.*') || isAdmin());
 
       // Users can create their own document (on first login), admin can create any
       allow create: if request.auth != null &&
@@ -42,8 +43,9 @@ service cloud.firestore {
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastLogin', 'isPending'])) ||
         isAdmin());
 
-      // Only admin can delete user documents
-      allow delete: if isAdmin();
+      // Users can delete temp documents for their own email, admin can delete any
+      allow delete: if request.auth != null &&
+        (userId.matches('pending_.*') || isAdmin());
     }
 
     match /translations/{translation} {
